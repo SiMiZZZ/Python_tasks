@@ -1,0 +1,82 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Report</title>
+    <style>
+		body{
+			text-align: center;
+            font-family: Verdana;
+		}
+		img{
+		    width: 90%;
+		    object-fit: contain;
+		}
+        h1{
+            font-size: 2.5em;
+        }
+        h2{
+            font-size: 2em;
+        }
+<!--        table{-->
+<!--            border: 1px solid black;-->
+<!--            border-collapse: collapse;-->
+<!--        }-->
+        th,td {
+            border: 1px solid black;
+            border-collapse: collapse;
+            text-align: center;
+            padding: 5px;
+            font-size: larger;
+        }
+    </style>
+</head>
+<body>
+    <h1>Аналитика по зарплатам и городам для профессии {{profession}}</h1>
+    <img src="C:\Users\79823\Desktop\SiMiZZZ\pythonProject2\graph.png">
+    <h2>Статистика по годам</h2>
+    <table>
+        <tr>
+            {% for header in headers1 %}
+            <th>{{header}}</th>
+            {% endfor %}
+        </tr>
+        {% for year, value in salary_by_years.items() %}
+            <tr>
+                <td>{{year}}</td>
+                <td>{{value}}</td>
+                <td>{{vacancies_salary_by_years[year]}}</td>
+                <td>{{vacancies_by_years[year]}}</td>
+                <td>{{vacancies_counts_by_years[year]}}</td>
+            </tr>
+        {% endfor %}
+    </table>
+    <h2>Статистика по городам</h2>
+    <table style="float: left;  width: 49%">
+        <tr>
+            <th>{{headers2[0]}}</th>
+            <th>{{headers2[1]}}</th>
+        </tr>
+        {% for city, count in salary_by_cities.items() %}
+            <tr>
+                <td>{{city}}</td>
+                <td>{{count}}</td>
+            </tr>
+        {% endfor %}
+    </table>
+    <table style="float: left; margin-left: 15px; width: 49%">
+        <tr>
+            <th>{{headers2[2]}}</th>
+            <th>{{headers2[3]}}</th>
+        </tr>
+        {% for city, count in vacs_by_cities.items() %}
+            <tr>
+                <td>{{city}}</td>
+                <td>{{[(count*100)|round(2)|string|replace(".",","),"%"]|join}}</td>
+            </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
