@@ -1,16 +1,16 @@
-import math
 import re
 import csv
 import datetime
+import unittest
 from statistics import mean
-import matplotlib
 from matplotlib import pyplot as plt
 from openpyxl import Workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font, Alignment, Border, Side
-
 from jinja2 import Environment, FileSystemLoader
 import pdfkit
+import doctest
+from unittest import TestCase
 
 
 class Vacancy:
@@ -27,6 +27,7 @@ class Vacancy:
 
     def __init__(self):
         """Инициализирует объект вакансии и объявляет нужные переменные класса
+
         """
         self.name = str()
         self.salary_from = str()
@@ -55,8 +56,6 @@ class Vacancy:
         return (int(float(self.salary_from)) + int(float(self.salary_to))) / 2 * self.currency_to_rub[
                     self.salary_currency]
 
-
-
 class DataSet():
     """ Класс представления данных, полученных из csv файла
 
@@ -68,6 +67,11 @@ class DataSet():
         """ Инициализирует объект DataSet
 
         :param file_name: Имя csv файла
+
+        >>> DataSet("vacancies_by_year.csv").file_name
+        'vacancies_by_year.csv'
+        >>> DataSet("vacancies_by_year.csv").vacancies_objects
+        []
         """
         self.file_name = file_name
         self.vacancies_objects = []
@@ -80,6 +84,12 @@ class DataSet():
             first_line(list(str)) : лист строк, включающий в себя заголовок csv файла
             vacancies(list(str)) : лист строк csv файла, включающий в себя вакансии
             empty(bool) : флаг, указывающий на то, является ли файл пустым
+
+        >>> DataSet("vacancies_by_year.csv").csv_reader("vacancies_by_year.csv")[0]
+        ['name', 'salary_from', 'salary_to', 'salary_currency', 'area_name', 'published_at']
+
+        >>> DataSet("vacancies_by_year.csv").csv_reader("vacancies_by_year.csv")[2]
+        False
         """
         empty = False
         vacancies = []
@@ -107,6 +117,13 @@ class DataSet():
         :param non_checked_list: лист значений, полученный из строки файла
         :param quanity: количество значений в заголовке файла
         :return: True, если строка подходит под нужные критерии, False в обратном случае
+
+        >>> DataSet("vacancies_by_year.csv").check_list(["1", "2", "3"], 3)
+        True
+        >>> DataSet("vacancies_by_year.csv").check_list(["1", "2", "3"], 4)
+        False
+        >>> DataSet("vacancies_by_year.csv").check_list(["1", "2", ""], 3)
+        False
         """
         if len(non_checked_list) == quanity and ('' not in non_checked_list):
             return True
@@ -117,6 +134,14 @@ class DataSet():
 
         :param value: строка, содержащая html теги
         :return: Строка без html тегов
+        >>> DataSet("vacancies_by_year.csv").clear_list("<html>Чистая строка</html>")
+        'Чистая строка'
+        >>> DataSet("vacancies_by_year.csv").clear_list("<html>Чистая <b>строка</b></html>")
+        'Чистая строка'
+        >>> DataSet("vacancies_by_year.csv").clear_list("<img>Картинка<img><img>")
+        'Картинка'
+        >>> DataSet("vacancies_by_year.csv").clear_list("<html><b><br></b></html>")
+        ''
         """
         value = re.sub(r'\<[^>]*\>', '', value)
         return value
@@ -135,7 +160,6 @@ class DataSet():
                 clear_naming[skill] = " ".join(self.clear_list(vacancie[index]).split())
             vacancies.append(clear_naming)
         return vacancies
-
 
 class InputCorrect():
     """Класс для первичной записи названия файла, названия профессии
@@ -158,6 +182,8 @@ class InputCorrect():
         :param dict: Словарь для поиска
         :param value: Значение которому соответствует ключ
         :return: Ключ по заданному значению
+
+
         """
         for k, v in dict.items():
             if v == value:
@@ -537,6 +563,49 @@ def generate_pdf(prof, statistic):
     config = pdfkit.configuration(wkhtmltopdf=r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe')
     pdfkit.from_string(pdf_template, 'report.pdf', configuration=config, options={"enable-local-file-access": None})
 
+class ProjectTests(TestCase):
+    def test_dataset_file_name(self):
+        self.assertEqual(DataSet("vacancies_by_year.csv").file_name, 'vacancies_by_year.csv')
+
+    def test_dataset_vacancies_objects(self):
+        self.assertEqual(DataSet("vacancies_by_year.csv").vacancies_objects, [])
+
+    def test_dataset_csv_headers(self):
+        self.assertEqual(DataSet("vacancies_by_year.csv").csv_reader("vacancies_by_year.csv")[0],
+                             ['name', 'salary_from', 'salary_to', 'salary_currency', 'area_name', 'published_at'])
+
+    def test_dataset_csv_empty_file(self):
+        self.assertEqual(DataSet("vacancies_by_year.csv").csv_reader("vacancies_by_year.csv")[2], False)
+
+    def test_dataset_check_list_true(self):
+        self.assertEqual(DataSet("vacancies_by_year.csv").check_list(["1", "2", "3"], 3), True)
+
+    def test_dataset_check_list_false_by_counter(self):
+        self.assertEqual(DataSet("vacancies_by_year.csv").check_list(["1", "2", "3"], 4), False)
+
+    def test_dataset_check_list_false_by_empty_string(self):
+        self.assertEqual(DataSet("vacancies_by_year.csv").check_list(["1", "2", "3", ""], 4), False)
+
+    def test_dataset_clear_list_1_test(self):
+        self.assertEqual(DataSet("vacancies_by_year.csv").clear_list("<html>Чистая строка</html>"), 'Чистая строка')
+
+    def test_dataset_clear_list_2_test(self):
+        self.assertEqual(DataSet("vacancies_by_year.csv").clear_list("<html>Чистая <b>строка</b></html>"),
+                             'Чистая строка')
+
+    def test_dataset_clear_list_3_test(self):
+        self.assertEqual(DataSet("vacancies_by_year.csv").clear_list("<img>Картинка<img><img>"), 'Картинка')
+
+    def test_dataset_clear_list_4_test(self):
+        self.assertEqual(DataSet("vacancies_by_year.csv").clear_list("<html><b><br></b></html>"), '')
+
+    def test_inputcorrect_get_key_one_value(self):
+        self.assertEqual(InputCorrect().get_key({"Аня": 15, "Вова": 31, "Маша": 44}, 44), 'Маша')
+
+    def test_inputcorrect_get_key_many_values(self):
+        self.assertEqual(InputCorrect().get_key({"Аня": 15, "Вова": 31, "Маша": 44, "Денис": 31}, 31), 'Вова')
+
+
 def set_class_values(data):
     """ Преобразует лист словарей в лист класса Vacancie, и заполняет все его поля
 
@@ -551,6 +620,7 @@ def set_class_values(data):
         vacancies.append(vacancy)
     return vacancies
 
+doctest.testmod()
 
 input_rows = InputCorrect()
 data_set = DataSet(input_rows.file_name)
@@ -559,8 +629,6 @@ if not empty:
     data = data_set.csv_filer(f_line, vacancies)
     data_set.vacancies_objects = set_class_values(data)
     statistic = Statistics(data_set.vacancies_objects, input_rows.profession_name)
-    pl = Plot(statistic)
-    generate_pdf(statistic.profession_name, statistic)
     print("{}: {}".format("Динамика уровня зарплат по годам", statistic.salary_by_years))
     print("{}: {}".format("Динамика количества вакансий по годам", statistic.quantity_by_years))
     print("{}: {}".format("Динамика уровня зарплат по годам для выбранной профессии", statistic.salary_by_profession))
@@ -568,5 +636,7 @@ if not empty:
                           statistic.quantity_by_profession))
     print("{}: {}".format("Уровень зарплат по городам (в порядке убывания)", statistic.salary_by_cities))
     print("{}: {}".format("Доля вакансий по городам (в порядке убывания)", statistic.share_of_cities))
+    generate_pdf(statistic.profession_name, statistic)
+    pl = Plot(statistic)
 
 
