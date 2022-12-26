@@ -26,3 +26,7 @@
 ![image](https://user-images.githubusercontent.com/48767823/209453060-1483683c-209e-4400-82d6-f87bf276fa4d.png)
 
 ### С мультипроцессом получаем 24 секунды. Улучшили свой результат в 3 раза
+
+![image](https://user-images.githubusercontent.com/48767823/209582509-d85f666a-536c-43b5-a013-e41f4c01fe75.png)
+
+### С concurrent.futures вместо мультипроцесса получаем 21 секунду, что быстрее мультироцесса
